@@ -14,8 +14,12 @@
     "portsAttributes": {
         "6080": {
             "label": "Desktop GUI",
+            "onAutoForward": "openBrowser",
             "requireLocalPort": true
         }
     },
-    "postCreateCommand": "sudo cp -r /workspaces/${localWorkspaceFolderBasename}/ctf_challenges /home/vscode/Desktop/ && sudo chown -R vscode:vscode /home/vscode/Desktop/ctf_challenges"
+    "remoteEnv": {
+        "DISPLAY": ":1"
+    },
+    "postCreateCommand": "mkdir -p /home/vscode/Desktop && cp -r /workspaces/${localWorkspaceFolderBasename}/challenges /home/vscode/Desktop/ && sudo chown -R vscode:vscode /home/vscode/Desktop/challenges"
 }
