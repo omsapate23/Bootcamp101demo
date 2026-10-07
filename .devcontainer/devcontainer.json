@@ -1,25 +1,34 @@
 {
-    "name": "Protocol",
+    "name": "Protocol Bootcamp Desktop",
     "build": {
         "dockerfile": "Dockerfile"
     },
-    "features": {
-        "ghcr.io/devcontainers/features/desktop-lite:1": {
-            "password": "101"
-        }
+    "remoteUser": "vscode",
+    "containerEnv": {
+        "DISPLAY": ":1"
     },
     "forwardPorts": [
         6080
     ],
     "portsAttributes": {
         "6080": {
-            "label": "Desktop GUI",
+            "label": "Open Bootcamp Desktop",
             "onAutoForward": "openBrowser",
-            "requireLocalPort": true
+            "protocol": "http"
+        },
+        "5901": {
+            "onAutoForward": "ignore"
         }
     },
-    "remoteEnv": {
-        "DISPLAY": ":1"
-    },
-    "postCreateCommand": "mkdir -p /home/vscode/Desktop && cp -r /workspaces/${localWorkspaceFolderBasename}/challenges /home/vscode/Desktop/ && sudo chown -R vscode:vscode /home/vscode/Desktop/challenges"
+    "postStartCommand": "bash /usr/local/bin/bootcamp-start",
+    "customizations": {
+        "codespaces": {
+            "portsAttributes": {
+                "6080": {
+                    "label": "Bootcamp Desktop",
+                    "visibility": "private"
+                }
+            }
+        }
+    }
 }
