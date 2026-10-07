@@ -1,4 +1,4 @@
-name: Build and Publish Bootcamp Desktop Image
+name: Build, Test & Publish Bootcamp Desktop Image
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - '.devcontainer/**'
+      - 'tests/**'
       - '.github/workflows/build-desktop-image.yml'
   workflow_dispatch:
 
@@ -14,8 +15,8 @@ permissions:
   packages: write
 
 jobs:
-  build-and-push:
-    name: Build & Push Desktop Image to GHCR
+  build-test-push:
+    name: Build, Verify & Push Desktop Image
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +43,28 @@ jobs:
             type=sha,format=long,prefix=
             type=sha,format=short,prefix=
 
-      - name: Build and push Docker image
+      - name: Build Docker Image locally for verification
+        uses: docker/build-push-action@v6
+        with:
+          context: .devcontainer
+          file: .devcontainer/Dockerfile
+          load: true
+          tags: bootcamp-desktop:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Automated Smoke & Verification Tests in Container
+        run: |
+          chmod +x tests/smoke_test.sh
+          docker run --rm \
+            --user vscode \
+            -e DISPLAY=:1 \
+            -v "${{ github.workspace }}:/workspaces/Bootcamp101demo" \
+            -w /workspaces/Bootcamp101demo \
+            bootcamp-desktop:test \
+            bash /workspaces/Bootcamp101demo/tests/smoke_test.sh
+
+      - name: Push verified Docker Image to GHCR
         uses: docker/build-push-action@v6
         with:
           context: .devcontainer
@@ -51,4 +73,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
