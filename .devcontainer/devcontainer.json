@@ -1,8 +1,6 @@
 {
     "name": "Protocol Bootcamp Desktop",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
+    "image": "ghcr.io/omsapate23/bootcamp-desktop:latest",
     "remoteUser": "vscode",
     "containerEnv": {
         "DISPLAY": ":1"
@@ -12,12 +10,9 @@
     ],
     "portsAttributes": {
         "6080": {
-            "label": "Open Bootcamp Desktop",
+            "label": "Bootcamp Desktop",
             "onAutoForward": "openBrowser",
             "protocol": "http"
-        },
-        "5901": {
-            "onAutoForward": "ignore"
         }
     },
     "postStartCommand": "bash /usr/local/bin/bootcamp-start",

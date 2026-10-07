@@ -51,12 +51,36 @@ chmod +x "$HOME/Desktop/"*.desktop
 # Missing challenges do not break desktop startup.
 if [ -d "$PWD/challenges" ]; then
     ln -sfn "$PWD/challenges" "$HOME/Desktop/Challenges"
+elif [ -d "/workspaces/Bootcamp101demo/challenges" ]; then
+    ln -sfn "/workspaces/Bootcamp101demo/challenges" "$HOME/Desktop/Challenges"
+else
+    for dir in /workspaces/*/challenges; do
+        if [ -d "$dir" ]; then
+            ln -sfn "$dir" "$HOME/Desktop/Challenges"
+            break
+        fi
+    done
+fi
+
+# Clean up stale supervisor locks/sockets if supervisor is not actually running
+if [ -f "$HOME/.bootcamp/supervisor.pid" ]; then
+    SUPERVISOR_PID=$(cat "$HOME/.bootcamp/supervisor.pid" 2>/dev/null || echo "")
+    if [ -n "$SUPERVISOR_PID" ] && ! kill -0 "$SUPERVISOR_PID" 2>/dev/null; then
+        rm -f "$HOME/.bootcamp/supervisor.pid" "$HOME/.bootcamp/supervisor.sock"
+    fi
+fi
+
+# Clean stale VNC locks if Xvnc is not running
+if [ -f /tmp/.X1-lock ] || [ -S /tmp/.X11-unix/X1 ]; then
+    if ! pgrep -f "Xvnc :1|Xtigervnc.*:1" >/dev/null 2>&1; then
+        rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+    fi
 fi
 
 # Avoid starting a second Supervisor instance.
 if ! supervisorctl -c /etc/bootcamp-supervisord.conf \
      pid >/dev/null 2>&1; then
-    tigervncserver -list -cleanstale
+    tigervncserver -list -cleanstale 2>/dev/null || true
     supervisord -c /etc/bootcamp-supervisord.conf
 fi
 
@@ -74,5 +98,6 @@ done
 echo "Desktop startup did not finish. Diagnostic information:"
 supervisorctl -c /etc/bootcamp-supervisord.conf status || true
 tail -n 40 "$HOME/.bootcamp/vnc.log" \
-           "$HOME/.bootcamp/novnc.log" || true
+           "$HOME/.bootcamp/novnc.log" \
+           "$HOME/.bootcamp/supervisor.log" 2>/dev/null || true
 exit 1
